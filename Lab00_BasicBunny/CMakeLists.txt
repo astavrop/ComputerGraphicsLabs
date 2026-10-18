@@ -5,15 +5,21 @@ project(Lab00_BasicBunny LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# -------------------------------
+# -------------------------------------------------
 # OpenGL
-# -------------------------------
+# -------------------------------------------------
+
 find_package(OpenGL REQUIRED)
 
-# -------------------------------
-# GLFW
-# -------------------------------
+# -------------------------------------------------
+# FetchContent
+# -------------------------------------------------
+
 include(FetchContent)
+
+# -------------------------------------------------
+# GLFW 3.4
+# -------------------------------------------------
 
 FetchContent_Declare(
     glfw
@@ -23,39 +29,53 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw)
 
-# -------------------------------
-# GLAD
-# -------------------------------
+# -------------------------------------------------
+# GLAD 2 - OpenGL 3.3 Core
+# -------------------------------------------------
+
 FetchContent_Declare(
     glad
     GIT_REPOSITORY https://github.com/Dav1dde/glad.git
-    GIT_TAG v0.1.36
+    GIT_TAG v2.0.8
+    SOURCE_SUBDIR cmake
 )
 
 FetchContent_MakeAvailable(glad)
 
-# -------------------------------
-# Our executable
-# -------------------------------
+glad_add_library(
+    glad_gl_core_33
+    REPRODUCIBLE
+    API gl:core=3.3
+)
+
+# -------------------------------------------------
+# Lab 00 executable
+# -------------------------------------------------
+
+
+
+
 add_executable(
     Lab00_BasicBunny
     src/main.cpp
 )
 
-# BunnyMesh.h lives here
+add_dependencies(
+    Lab00_BasicBunny
+    glad_gl_core_33
+)
+
+# Our own header files
 target_include_directories(
     Lab00_BasicBunny
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# -------------------------------
-# Libraries
-# -------------------------------
 target_link_libraries(
     Lab00_BasicBunny
     PRIVATE
-    glad
+    glad_gl_core_33
     glfw
     OpenGL::GL
 )
