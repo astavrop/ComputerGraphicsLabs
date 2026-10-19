@@ -88,3 +88,25 @@ git clone <repository-url>
 
 Then configure and build with CMake.
 
+## Portability Test
+
+Lab00 was successfully cloned, configured, built, and executed on two
+different Windows laptops.
+
+The project uses CMake with FetchContent to retrieve GLFW and GLAD.
+
+### Requirements
+
+- Visual Studio with C++ and CMake support
+- Git
+- Python
+- Jinja2 (`py -m pip install Jinja2`)
+- OpenGL-capable graphics driver
+
+This test confirmed that the project can be reproduced from a clean
+Git clone without manually copying GLFW or GLAD libraries.
+
+### Tested Hardware
+
+- ASUS VivoBook Flip 14 - AMD Ryzen 5 4500U / Radeon integrated graphics
+- ASUS TUF Gaming A16 - NVIDIA GeForce RTX 4050 Laptop GPU
