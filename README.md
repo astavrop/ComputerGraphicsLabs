@@ -1,4 +1,4 @@
-\# Computer Graphics Labs
+# Computer Graphics Labs
 
 
 
@@ -18,31 +18,45 @@ rendering and scene optimization techniques.
 
 
 
-\## Technologies
+## Background & Motivation
+
+This repository is a personal return to computer graphics, inspired in part by topics I studied at the University of Paderborn more than a decade ago, including *Advanced Rendering* and *Algorithms for Highly Complex Virtual Scenes*.
+
+The labs revisit concepts such as the graphics pipeline, GPU programming, scene hierarchies, spatial data structures, visibility and culling, mapping techniques, advanced shading, global illumination, and rendering of complex scenes using modern C++, OpenGL and GLSL.
+
+The original university material serves as thematic and educational inspiration rather than as a direct reproduction of the original assignments. The implementations, experiments and organization of this repository are newly developed.
+
+A major difference from my student days is the development process itself: these labs are being created through an iterative collaboration with generative AI (ChatGPT), used as a learning, programming and debugging assistant. Each experiment is implemented, tested, evaluated and progressively refined by the author.
+
+*In 2013, I studied these ideas from lecture slides and implemented graphics assignments without generative AI. More than a decade later, I am revisiting the same field with modern hardware, modern OpenGL, and AI as an interactive learning partner.*
+
+---
+
+## Technologies
 
 
 
-\- C++
+- C++
 
-\- OpenGL 3.3 Core Profile
+- OpenGL 3.3 Core Profile
 
-\- GLSL
+- GLSL
 
-\- GLFW
+- GLFW
 
-\- GLAD
+- GLAD
 
-\- CMake
+- CMake
 
-\- Visual Studio
-
-
-
-\## Labs
+- Visual Studio
 
 
 
-\### Lab 00 — Basic Stanford Bunny Rendering
+## Labs
+
+
+
+### Lab 00 — Basic Stanford Bunny Rendering
 
 
 
@@ -54,25 +68,25 @@ Topics:
 
 
 
-\- OpenGL context creation
+- OpenGL context creation
 
-\- Vertex Array Objects (VAO)
+- Vertex Array Objects (VAO)
 
-\- Vertex Buffer Objects (VBO)
+- Vertex Buffer Objects (VBO)
 
-\- Element Buffer Objects (EBO)
+- Element Buffer Objects (EBO)
 
-\- Indexed triangle rendering
+- Indexed triangle rendering
 
-\- Vertex and fragment shaders
+- Vertex and fragment shaders
 
-\- Basic transformations
+- Basic transformations
 
-\- Rotation
+- Rotation
 
-\- Basic color / lighting effect
+- Basic color / lighting effect
 
-\- Stanford Bunny mesh
+- Stanford Bunny mesh
 
 
 
@@ -80,7 +94,7 @@ This lab serves as the base project for the following experiments.
 
 
 
-\### Lab 01 — Stanford Bunny Rendering Benchmark
+### Lab 01 — Stanford Bunny Rendering Benchmark
 
 
 
@@ -92,13 +106,13 @@ Scene sizes:
 
 
 
-\- 1 bunny
+- 1 bunny
 
-\- 100 bunnies
+- 100 bunnies
 
-\- 1,000 bunnies
+- 1,000 bunnies
 
-\- 10,000 bunnies
+- 10,000 bunnies
 
 
 
@@ -116,7 +130,30 @@ optimizations.
 
 
 
-\## Planned Experiments
+### Lab 02 — Stanford Bunny GPU Instancing
+
+Controlled follow-up to Lab01 using GPU instancing.
+
+The experiment replaces repeated per-object `glDrawElements()` calls with a single `glDrawElementsInstanced()` call. Instance positions are calculated in the vertex shader using `gl_InstanceID`.
+
+The same 1, 100, 1,000 and 10,000 bunny workloads are tested on both integrated AMD graphics and an NVIDIA GeForce RTX 4050 Laptop GPU, allowing direct comparison with the Lab01 brute-force baseline.
+
+Topics:
+
+- GPU instancing
+- `glDrawElementsInstanced()`
+- `gl_InstanceID`
+- CPU/driver draw-call overhead
+- CPU-to-GPU submission
+- workload scaling
+- integrated vs discrete GPU behavior
+- controlled performance comparison with Lab01
+
+The measurements show that reducing draw calls can provide a substantial benefit for some workloads, but the improvement depends on the actual rendering bottleneck.
+
+---
+
+## Planned Experiments
 
 
 
@@ -124,31 +161,30 @@ Future labs will explore:
 
 
 
-\- GPU instanced rendering
 
-\- Model, View and Projection matrices
+- Model, View and Projection matrices
 
-\- Phong / Blinn-Phong lighting
+- Phong / Blinn-Phong lighting
 
-\- Large scene rendering
+- Large scene rendering
 
-\- Frustum culling
+- Frustum culling
 
-\- Spatial data structures
+- Spatial data structures
 
-\- Octrees
+- Octrees
 
-\- Level of Detail (LOD)
+- Level of Detail (LOD)
 
-\- Performance profiling
+- Performance profiling
 
-\- CPU-bound vs GPU-bound rendering
+- CPU-bound vs GPU-bound rendering
 
-\- Rendering optimization
-
+- Rendering optimization
 
 
-\## Goal
+
+## Goal
 
 
 
@@ -166,7 +202,7 @@ implementation and the observed results.
 
 
 
-\## Hardware Experiments
+## Hardware Experiments
 
 
 
@@ -180,7 +216,7 @@ Results are documented inside the corresponding lab directories.
 
 
 
-\## Build
+## Build
 
 
 
@@ -192,11 +228,11 @@ General requirements:
 
 
 
-\- C++17 compatible compiler
+- C++17 compatible compiler
 
-\- CMake
+- CMake
 
-\- OpenGL capable GPU and driver
+- OpenGL capable GPU and driver
 
 
 
@@ -204,43 +240,43 @@ See the README inside each lab directory for specific instructions.
 
 
 
-\## Repository Structure
+## Repository Structure
 
 
 
-&#x20;   ComputerGraphicsLabs/
+    ComputerGraphicsLabs/
 
-&#x20;   ├── README.md
+    ├── README.md
 
-&#x20;   ├── .gitignore
+    ├── .gitignore
 
-&#x20;   ├── Lab00\_BasicBunny/
+    ├── Lab00_BasicBunny/
 
-&#x20;   │   ├── README.md
+    │   ├── README.md
 
-&#x20;   │   ├── CMakeLists.txt
+    │   ├── CMakeLists.txt
 
-&#x20;   │   ├── src/
+    │   ├── src/
 
-&#x20;   │   └── include/
+    │   └── include/
 
-&#x20;   │
+    │
 
-&#x20;   └── Lab01\_BunnyBenchmark/
+    └── Lab01_BunnyBenchmark/
 
-&#x20;       ├── README.md
+        ├── README.md
 
-&#x20;       ├── CMakeLists.txt
+        ├── CMakeLists.txt
 
-&#x20;       ├── src/
+        ├── src/
 
-&#x20;       ├── include/
+        ├── include/
 
-&#x20;       └── docs/
+        └── docs/
 
 
 
-\## Status
+## Status
 
 
 
