@@ -1,0 +1,25 @@
+# CMake and IDE outputs
+/build/
+/build-*/
+/cmake-build-*/
+/out/
+/.vs/
+/.vscode/
+CMakeUserPresets.json
+*.user
+*.suo
+*.pdb
+*.obj
+*.o
+*.exe
+*.dll
+*.lib
+*.a
+*.ilk
+*.log
+.DS_Store
+# Generated benchmark outputs (retain README and templates)
+/results/*measurements.csv
+!/results/*_TEMPLATE.csv
+/results/*.png
+/results/*.jpg

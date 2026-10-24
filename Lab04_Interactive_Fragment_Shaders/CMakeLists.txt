@@ -1,0 +1,129 @@
+cmake_minimum_required(VERSION 3.20)
+project(Lab04_Interactive_Fragment_Shaders LANGUAGES C CXX)
+add_compile_definitions(NOMINMAX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(FetchContent)
+
+option(LAB03_BUILD_GRAPHICS "Build the GLFW+GLAD OpenGL application" ON)
+option(LAB03_BUILD_TESTS "Build pure C++ mathematical tests" ON)
+option(LAB03_USE_STUDENT_MATH "Use student implementations instead of reference math" OFF)
+option(LAB03_FETCH_GLFW "Download GLFW on first build if not found" ON)
+option(LAB03_FETCH_GLAD "Download GLAD1 generated sources on first build if missing" ON)
+
+add_library(lab03_math STATIC src/Lab03Math.cpp)
+target_include_directories(lab03_math PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+add_library(lab03_student STATIC src/Lab03Student.cpp)
+target_link_libraries(lab03_student PUBLIC lab03_math)
+
+if(LAB03_BUILD_TESTS)
+  enable_testing()
+  add_executable(lab03_layout_tests tests/test_layout.cpp)
+  target_link_libraries(lab03_layout_tests PRIVATE lab03_math)
+  add_test(NAME layout_geometry_test COMMAND lab03_layout_tests)
+  # Student implementations are included and can be checked against the reference.
+  add_executable(lab03_student_tests tests/test_student.cpp)
+  target_link_libraries(lab03_student_tests PRIVATE lab03_student)
+  add_test(NAME student_geometry_test COMMAND lab03_student_tests)
+endif()
+
+if(LAB03_BUILD_GRAPHICS)
+  find_package(OpenGL REQUIRED)
+
+  if(TARGET glfw)
+    set(LAB03_GLFW_TARGET glfw)
+  elseif(TARGET glfw3::glfw)
+    set(LAB03_GLFW_TARGET glfw3::glfw)
+  else()
+    find_package(glfw3 CONFIG QUIET)
+    if(TARGET glfw)
+      set(LAB03_GLFW_TARGET glfw)
+    elseif(TARGET glfw3::glfw)
+      set(LAB03_GLFW_TARGET glfw3::glfw)
+    elseif(LAB03_FETCH_GLFW)
+      include(FetchContent)
+      set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+      set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+      set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+      FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_TAG 3.4 GIT_SHALLOW TRUE)
+      FetchContent_MakeAvailable(glfw)
+      set(LAB03_GLFW_TARGET glfw)
+    else()
+      message(FATAL_ERROR "GLFW not found: configure LAB03_FETCH_GLFW=ON or provide glfw3_DIR")
+    endif()
+  endif()
+
+  # GLAD1 matches Lab01/Lab02: gladLoadGLLoader + <glad/glad.h>.
+  if(TARGET glad)
+    set(LAB03_GLAD_TARGET glad)
+  else()
+    find_path(LAB03_GLAD_INCLUDE glad/glad.h HINTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/glad/include")
+    find_file(LAB03_GLAD_SRC glad.c HINTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/glad/src")
+    if(NOT LAB03_GLAD_INCLUDE OR NOT LAB03_GLAD_SRC)
+      if(LAB03_FETCH_GLAD)
+        set(LAB03_GLAD_FETCH_DIR "${CMAKE_BINARY_DIR}/downloaded_glad")
+        file(MAKE_DIRECTORY "${LAB03_GLAD_FETCH_DIR}/include/glad" "${LAB03_GLAD_FETCH_DIR}/include/KHR" "${LAB03_GLAD_FETCH_DIR}/src")
+        set(LAB03_GLAD_GITHUB "https://raw.githubusercontent.com/JoeyDeVries/LearnOpenGL/master")
+        foreach(relative "includes/glad/glad.h" "includes/KHR/khrplatform.h" "src/glad.c")
+          if(relative STREQUAL "includes/glad/glad.h")
+            set(local "${LAB03_GLAD_FETCH_DIR}/include/glad/glad.h")
+          elseif(relative STREQUAL "includes/KHR/khrplatform.h")
+            set(local "${LAB03_GLAD_FETCH_DIR}/include/KHR/khrplatform.h")
+          else()
+            set(local "${LAB03_GLAD_FETCH_DIR}/src/glad.c")
+          endif()
+          if(NOT EXISTS "${local}")
+            file(DOWNLOAD "${LAB03_GLAD_GITHUB}/${relative}" "${local}" STATUS dlstatus TLS_VERIFY ON)
+            list(GET dlstatus 0 dlcode)
+            if(NOT dlcode EQUAL 0)
+              message(FATAL_ERROR "Unable to download ${relative}: ${dlstatus}. Copy GLAD1 from Lab02 into third_party/glad/ and reconfigure.")
+            endif()
+          endif()
+        endforeach()
+        set(LAB03_GLAD_INCLUDE "${LAB03_GLAD_FETCH_DIR}/include")
+        set(LAB03_GLAD_SRC "${LAB03_GLAD_FETCH_DIR}/src/glad.c")
+      else()
+        message(FATAL_ERROR "GLAD1 missing. Copy GLAD1 includes and glad.c from Lab02 to third_party/glad/.")
+      endif()
+    endif()
+    add_library(lab03_glad STATIC "${LAB03_GLAD_SRC}")
+    target_include_directories(lab03_glad PUBLIC "${LAB03_GLAD_INCLUDE}")
+    set(LAB03_GLAD_TARGET lab03_glad)
+  endif()
+
+  add_executable(Lab04_Interactive_Fragment_Shaders src/main.cpp)
+  target_link_libraries(Lab04_Interactive_Fragment_Shaders PRIVATE lab03_math ${LAB03_GLFW_TARGET} ${LAB03_GLAD_TARGET} OpenGL::GL)
+  if(LAB03_USE_STUDENT_MATH)
+    target_link_libraries(Lab04_Interactive_Fragment_Shaders PRIVATE lab03_student)
+    target_compile_definitions(Lab04_Interactive_Fragment_Shaders PRIVATE LAB03_USE_STUDENT_MATH=1)
+  endif()
+  target_compile_definitions(Lab04_Interactive_Fragment_Shaders PRIVATE
+     LAB03_SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders")
+  if(MSVC)
+    target_compile_options(Lab04_Interactive_Fragment_Shaders PRIVATE /W4)
+  else()
+    target_compile_options(Lab04_Interactive_Fragment_Shaders PRIVATE -Wall -Wextra -Wpedantic)
+  endif()
+  # Dear ImGui: GLFW + OpenGL3 backends
+  FetchContent_Declare(
+      imgui
+      GIT_REPOSITORY https://github.com/ocornut/imgui.git
+      GIT_TAG v1.91.9b
+  )
+  FetchContent_MakeAvailable(imgui)
+
+  add_library(imgui_lib STATIC
+      ${imgui_SOURCE_DIR}/imgui.cpp
+      ${imgui_SOURCE_DIR}/imgui_draw.cpp
+      ${imgui_SOURCE_DIR}/imgui_tables.cpp
+      ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+      ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+      ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+  )
+  target_include_directories(imgui_lib PUBLIC
+      ${imgui_SOURCE_DIR}
+      ${imgui_SOURCE_DIR}/backends
+  )
+  target_link_libraries(imgui_lib PUBLIC ${LAB03_GLFW_TARGET} OpenGL::GL)
+  target_link_libraries(Lab04_Interactive_Fragment_Shaders PRIVATE imgui_lib)
+endif()
