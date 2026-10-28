@@ -1,0 +1,15 @@
+# CMake / IDE output
+build/
+cmake-build-*/
+out/
+.vs/
+.idea/
+.vscode/
+CMakeUserPresets.json
+*.user
+*.suo
+*.obj
+*.o
+*.exe
+*.pdb
+.DS_Store
