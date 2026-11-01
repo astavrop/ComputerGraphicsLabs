@@ -1,46 +1,98 @@
-# Graphics Lab 05 — Sphere Lighting Laboratory
+# Graphics Lab 05 — Phong Lighting, Procedural Checkerboard & Golden Bunny
 
-**Intermediate stage before the metallic Stanford Bunny.** This is the sphere implementation from the Lab 05 learning sequence, packaged separately so students can investigate lighting on simple geometry before moving to the Bunny mesh.
+An educational **C++ / OpenGL / GLSL** graphics experiment that develops a lighting model step by step, from a single triangle to a rotating, reflective **Stanford Bunny**.
 
-## Features
+> **Learning objective:** Understand how surface normals, lighting components, procedural patterns, and environment reflections affect the appearance of 3D geometry.
 
-- Procedurally generated sphere mesh (vertices, normals and indexed triangles)
-- GLSL vertex and fragment shaders with Phong reflection-model components: **ambient, diffuse and specular**
-- Adjustable shininess exponent and material colors
-- Directional (stationary) light or orbiting point light
-- Automatic or manual Y-axis sphere rotation and adjustable rotation speed
-- Optional 3D checkerboard pattern and frequency control
-- Wireframe toggle and interactive Dear ImGui controls
+## Development journey
 
-## Build and run
+| Stage | Experiment | What we investigated |
+| --- | --- | --- |
+| 1 | **Single triangle** | The fundamental primitive used to construct polygonal meshes; introducing normals and lighting. |
+| 2 | **3D sphere** | How lighting changes across a smoothly curved surface. |
+| 3 | **Procedural checkerboard sphere** | Using GLSL calculations to generate a pattern without loading an image texture. |
+| 4 | **Stanford Bunny** | Applying the lighting model to a more complex OBJ triangle mesh with surface normals. |
+| 5 | **Golden Bunny + cubemap** | Improving the appearance of a gold-colored material by combining Phong lighting with direction-based environment sampling. |
 
-Requires a C++17 compiler, **CMake 3.20+**, Git, internet access for CMake FetchContent, and an OpenGL 3.3-capable graphics environment.
+## Phong lighting model
 
-```bash
-cmake -S . -B build
-cmake --build build --config Debug
+The fragment shader computes three independently controllable terms:
+
+- **Ambient:** Baseline illumination, even when a surface does not directly face the light.
+- **Diffuse:** Directional illumination based on the angle between the light direction and surface normal (`max(dot(N, L), 0.0)`).
+- **Specular:** A view-dependent highlight, controlled by specular strength and **shininess**.
+
+Conceptually:
+
+```text
+Phong color = ambient + diffuse + specular
 ```
 
-Run the `GraphicsLab05_Sphere` executable (in a multi-config build, it may be under `build/Debug/`). Alternatively, open this folder in Visual Studio with CMake support and select the `GraphicsLab05_Sphere` target.
+The lab's **Dear ImGui** controls allow each lighting component to be enabled or disabled and its strength adjusted independently. A shininess control demonstrates how specular highlights become tighter as the exponent increases.
 
-CMake downloads GLFW 3.4, GLAD 2.0.8 and Dear ImGui 1.91.9b during configuration.
+## Procedural checkerboard
 
-## Suggested learning sequence
+A checkerboard pattern is generated directly in the fragment shader from local/object-space positions. This is **not UV image-texture mapping**: the pattern is calculated mathematically and stays attached to the object as it rotates.
 
-1. Turn on **Ambient** alone and observe its constant contribution.
-2. Enable **Diffuse** and compare the sphere's light-facing and dark-facing regions.
-3. Enable **Specular**; vary **Shininess** from low (broad highlight) to high (concentrated highlight).
-4. Switch from **Stationary Light** to **Moving Point Light** and observe the changing illumination.
-5. Enable sphere rotation, checkerboard and wireframe to explore surface normals, geometry and shading.
-6. Carry the same lighting concepts forward to the **metallic Stanford Bunny** stage.
+The pattern helps make the interaction between surface geometry, diffuse illumination, and specular highlights easier to inspect.
 
-The checkerboard is a procedural pattern based on local object coordinates; it is not itself the diffuse-lighting term.
+## Stanford Bunny and gold material
 
-## Source layout
+The bunny mesh is loaded as triangles from an OBJ file, using vertex positions, normals, and indexed drawing. Rotating the model also requires transforming its normals consistently so the lighting remains correct.
 
-- `src/main.cpp` — sphere generation, GLSL shaders, rendering loop and ImGui controls
-- `CMakeLists.txt` — CMake build and third-party dependencies
+The gold appearance was refined by tuning the Phong material and introducing **cubemap environment reflections**.
 
-## Notes
+### Cubemap reflections
 
-This folder preserves the user's sphere-stage implementation. It is intended as a standalone intermediate lab, not as a polished final rendering engine. The project has not been compiled or run in this packaging environment. No generated build files or third-party source trees are included.
+A cubemap stores six directional faces (`+X`, `-X`, `+Y`, `-Y`, `+Z`, `-Z`). For each visible bunny fragment, the shader computes a reflection direction from the view vector and surface normal, then samples the cubemap:
+
+```glsl
+vec3 N = normalize(vNormal);
+vec3 I = normalize(FragPos - cameraPos);
+vec3 R = reflect(I, N);
+vec3 environmentColor = texture(skybox, R).rgb;
+```
+
+`FragPos`, `vNormal`, and `cameraPos` must be expressed in the same coordinate space. This is a fast **environment-mapping approximation**, not full ray tracing or physically based rendering.
+
+A **six-color debug cubemap** can be generated procedurally to verify the mapping without downloading image assets. The final experiment blends the sampled environment color with Phong shading to improve the bunny's gold appearance.
+
+## Interactive controls
+
+| Control | Purpose |
+| --- | --- |
+| Ambient on/off + strength | Isolate and tune baseline illumination |
+| Diffuse on/off + strength | Study normal–light orientation |
+| Specular on/off + strength | Isolate and tune highlights |
+| Shininess | Adjust highlight concentration |
+| Checkerboard toggle / frequency | Compare plain material and procedural pattern |
+| Cubemap reflections checkbox | Enable or disable environment mapping |
+| Reflection strength | Blend environment reflections with Phong shading |
+
+## Technologies and concepts
+
+**C++, OpenGL, GLSL, GLFW, Dear ImGui, OBJ mesh loading, vertex normals, indexed triangle rendering, fragment shading, procedural patterns, reflection vectors, cubemap textures.**
+
+## Running the lab
+
+Build the **GraphicsLab05** project using the CMake configuration included in the repository. Ensure the OBJ asset path resolves relative to the executable's working directory (or configure an absolute/resource path as appropriate for your setup).
+
+> Project layout and exact build target names may vary; consult the `CMakeLists.txt` in this folder.
+
+## Results and report
+
+The final demonstration is a **rotating golden Stanford Bunny** with independently adjustable Phong lighting and optional cubemap reflections.
+
+If you add the PDF report to this folder, link it here, for example:
+
+```markdown
+[Read the illustrated Lab 05 report](Graphics_Lab05_Phong_Cubemap_Report.pdf)
+```
+
+## Next challenge: Texture mapping
+
+With the gold appearance complete, the next lab will explore **UV coordinates, loading 2D image textures, and sampling them in GLSL** to control surface appearance.
+
+---
+
+Part of the [ComputerGraphicsLabs](https://github.com/astavrop/ComputerGraphicsLabs) educational, non-commercial graphics portfolio.
